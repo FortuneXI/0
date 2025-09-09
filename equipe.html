@@ -189,7 +189,11 @@
 
       const uid = user.uid;
       const conviteCurto = uid.slice(-6);
-      const link = `${window.location.origin}/login.index.html?ref=${conviteCurto}`;
+
+      // Detecta automaticamente a pasta onde está hospedado (ex: /0/)
+      const pasta = window.location.pathname.split("/")[1];
+      const link = `${window.location.origin}/${pasta}/login.index.html?ref=${conviteCurto}`;
+
       document.getElementById("linkConvite").textContent = link;
 
       const usuariosRef = ref(db, "usuarios");
