@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vite App</title>
+<link href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(to bottom, #e0f2ff, #ffffff);
+    color: #1f2937;
+    padding-bottom: 120px; /* espaço para o rodapé fixo */
+  }
+
+  header {
+    background-color: #1d4ed8;
+    color: #ffffff;
+    padding: 50px 20px 30px;
+    text-align: center;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  }
+  header h1 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: bold;
+  }
+  header p {
+    margin-top: 6px;
+    font-size: 16px;
+    color: #cfe0ff;
+  }
+
+  .action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    max-width: 500px;
+    margin: -30px auto 20px;
+  }
+
+  .action-button {
+    background-color: #2563eb;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    color: white;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    transition: transform 0.2s, background 0.2s;
+  }
+  .action-button:hover {
+    transform: translateY(-3px);
+    background-color: #1e40af;
+  }
+  .action-button img {
+    width: 28px;
+    height: 28px;
+    margin-bottom: 8px;
+  }
+  .action-button span {
+    font-size: 13px;
+    font-weight: bold;
+  }
+
+  .saldo-card {
+    max-width: 500px;
+    margin: 0 auto 20px;
+    background-color: #ffffff;
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    flex-direction: row-reverse;
+  }
+  .saldo-info {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+  }
+  .saldo-info .label {
+    font-size: 14px;
+    color: #3b82f6;
+  }
+  .saldo-info .valor {
+    font-size: 22px;
+    font-weight: bold;
+    color: #1d4ed8;
+  }
+  .usuario-info {
+    text-align: left;
+  }
+  .usuario-info .telefone {
+    font-size: 16px;
+    font-weight: bold;
+  }
+  .usuario-info .id {
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  /* Pacotes em destaque */
+  .pacotes-destaque {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    max-width: 500px;
+    margin: 20px auto;
+  }
+  .pacote {
+    background:#ffffff;
+    border-radius:15px;
+    padding:20px;
+    box-shadow:0 4px 8px rgba(0,0,0,0.1);
+    border-top:5px solid #f59e0b;
+    width:100%;
+    max-width:300px;
+    text-align:center;
+  }
+  .pacote h3 {
+    margin-top:0;
+    color:#b45309;
+  }
+  .linha {
+    display:flex;
+    justify-content:space-between;
+    margin:8px 0;
+    font-size:15px;
+  }
+  .pacote button {
+    margin-top:15px;
+    padding:12px;
+    width:100%;
+    background:#f59e0b;
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-weight:bold;
+    font-size:16px;
+    cursor:pointer;
+  }
+
+  /* Rodapé moderno */
+  nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: #1d4ed8;
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 0;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+  }
+  nav button {
+    background: linear-gradient(145deg, #3b82f6, #2563eb);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 70px;
+    height: 50px;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.3s;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+  }
+  nav button:hover {
+    transform: translateY(-3px);
+    background: linear-gradient(145deg, #1e40af, #1d4ed8);
+  }
+  nav button.active {
+    background: linear-gradient(145deg, #facc15, #f59e0b);
+    color: #1d4ed8;
+  }
+  nav img {
+    width: 24px;
+    height: 24px;
+    margin-bottom: 3px;
+  }
+
+  /* Mensagem de investimento */
+  #mensagem {
+    text-align: center;
+    font-weight: bold;
+    color: #1d4ed8;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Bem-vindo à FortuneX</h1>
+  <p>Explore suas oportunidades de investimento</p>
+</header>
+
+<!-- AÇÕES -->
+<div class="action-grid">
+  <div class="action-button" onclick="location.href='deposito.html'">
+    <img src="https://img.icons8.com/ios-filled/50/ffffff/money.png"/>
+    <span>Adicionar Saldo</span>
+  </div>
+  <div class="action-button" onclick="location.href='retirada.html'">
+    <img src="https://img.icons8.com/ios-filled/50/ffffff/receive-cash.png"/>
+    <span>Sacar Fundos</span>
+  </div>
+  <div class="action-button" onclick="location.href='equipe.html'">
+    <img src="https://img.icons8.com/ios-filled/50/ffffff/conference-call.png"/>
+    <span>Time</span>
+  </div>
+  <div class="action-button" onclick="location.href='invest.html'">
+    <img src="https://img.icons8.com/ios-filled/50/ffffff/box.png"/>
+    <span>Produtos</span>
+  </div>
+  <!-- Novo botão WhatsApp Chat -->
+  <div class="action-button" onclick="window.open('https://wa.me/244957329934','_blank')">
+    <img src="https://img.icons8.com/ios-filled/50/ffffff/whatsapp.png"/>
+    <span>WhatsApp</span>
+  </div>
+  <!-- Novo botão Grupo WhatsApp -->
+  <div class="action-button" onclick="window.open('https://chat.whatsapp.com/EyPtaNRqHcWIuzuypxgfYk?mode=ems_copy_t','_blank')">
+    <img src="https://img.icons8.com/ios-filled/50/ffffff/groups.png"/>
+    <span>Grupo</span>
+  </div>
+</div>
+
+<!-- SALDO -->
+<div class="saldo-card">
+  <div class="saldo-info">
+    <div class="label">Saldo Disponível</div>
+    <div class="valor" id="userSaldo">Kz 0</div>
+  </div>
+  <div class="usuario-info">
+    <div class="telefone" id="userTelefone">+244 000 000 000</div>
+    <div class="id" id="userId"></div>
+  </div>
+</div>
+
+<!-- PLANOS EM DESTAQUE -->
+<h2 style="text-align:center; color:#1d4ed8; margin-top:10px;">Planos em Destaque</h2>
+<div class="pacotes-destaque">
+  <div class="pacote">
+    <h3>PACOTE ESPECIAL</h3>
+    <div class="linha"><span>Preço:</span><span>10.000 KZ</span></div>
+    <div class="linha"><span>Período:</span><span>1 dia</span></div>
+    <div class="linha"><span>Rendimento Total:</span><span>13.000 KZ</span></div>
+    <button onclick="investirEspecial()">INVESTIR</button>
+  </div>
+</div>
+
+<div id="mensagem"></div>
+
+<!-- MENU -->
+<nav>
+  <button class="active" onclick="location.href='tela.html'">
+    <img src="https://img.icons8.com/ios/50/ffffff/home.png"/>
+    Home
+  </button>
+  <button onclick="location.href='ativos.html'">
+    <img src="https://img.icons8.com/ios/50/ffffff/combo-chart.png"/>
+    Ativos
+  </button>
+  <button onclick="logout()">
+    <img src="https://img.icons8.com/ios/50/ffffff/shutdown.png"/>
+    Sair
+  </button>
+</nav>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyChrog4zZNoK8HTMl1MTMD43U7HHxBMtVw",
+    authDomain: "palpite3ad.firebaseapp.com",
+    databaseURL: "https://palpite3ad-default-rtdb.firebaseio.com",
+    projectId: "palpite3ad",
+    storageBucket: "palpite3ad.appspot.com",
+    messagingSenderId: "435372004187",
+    appId: "1:435372004187:web:3b7ee8b621fba094b2407e"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+
+  firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+      const uid = user.uid;
+      document.getElementById('userId').innerText = "ID: " + uid.substring(0, 6);
+
+      firebase.database().ref('usuarios/' + uid).once('value').then(snapshot => {
+        const data = snapshot.val();
+        if (data) {
+          document.getElementById('userTelefone').innerText = data.telefone || '+244 000 000 000';
+          const saldo = Number(data.saldo || 0).toLocaleString('pt-AO', { minimumFractionDigits: 2 });
+          document.getElementById('userSaldo').innerText = "Kz " + saldo;
+        }
+      });
+    } else {
+      window.location.href = "index.html";
+    }
+  });
+
+  function logout() {
+    firebase.auth().signOut().then(() => {
+      window.location.href = "index.html";
+    });
+  }
+
+  function investirEspecial() {
+    const preco = 10000;
+    const dias = 1;
+    const rendimento = 13000;
+    const mensagemEl = document.getElementById("mensagem");
+
+    const user = firebase.auth().currentUser;
+    if (!user) {
+      alert("Usuário não autenticado!");
+      return;
+    }
+    const uid = user.uid;
+
+    firebase.database().ref('usuarios/' + uid + '/saldo').once('value').then(snapshot => {
+      let saldoAtual = snapshot.val() || 0;
+
+      if (saldoAtual < preco) {
+        mensagemEl.innerText = "⚠️ Saldo insuficiente para este investimento.";
+        return;
+      }
+
+      const investimento = {
+        preco,
+        dias,
+        rendimento,
+        inicio: Date.now(),
+        status: "ativo"
+      };
+
+      firebase.database().ref('usuarios/' + uid + '/investimentos').push().set(investimento)
+        .then(() => {
+          saldoAtual -= preco;
+          firebase.database().ref('usuarios/' + uid + '/saldo').set(saldoAtual);
+          mensagemEl.innerText = `✅ Investimento especial de ${preco.toLocaleString()} KZ realizado com sucesso!`;
+          document.getElementById('userSaldo').innerText = "Kz " + saldoAtual.toLocaleString('pt-AO', { minimumFractionDigits: 2 });
+        })
+        .catch(error => {
+          mensagemEl.innerText = "❌ Erro ao investir. Tente novamente.";
+          console.error(error);
+        });
+    });
+  }
+</script>
+</body>
+</html>

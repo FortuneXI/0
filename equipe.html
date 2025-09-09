@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vite App</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #e6f0ff, #ffffff);
+      margin: 0;
+      padding: 20px;
+      color: #222;
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    h2 {
+      text-align: center;
+      color: #1259c3;
+      margin-bottom: 20px;
+    }
+
+    #info {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #444;
+      font-size: 17px;
+    }
+
+    .convite-box {
+      background-color: #e6f2ff;
+      padding: 15px;
+      border-radius: 10px;
+      display: inline-block;
+      font-weight: bold;
+      word-break: break-word;
+      margin-top: 10px;
+      color: #1259c3;
+      max-width: 600px;
+    }
+
+    .link-texto {
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .copy-btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background-color: #1259c3;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 15px;
+    }
+
+    .nivel-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 12px auto;
+      max-width: 500px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: left;
+      animation: slideUp 0.6s ease;
+    }
+
+    .nivel-card h3 {
+      margin: 0;
+      color: #1259c3;
+    }
+
+    .nivel-info {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 16px;
+    }
+
+    .info-comissao {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 15px;
+      background-color: #f0f7ff;
+      border-left: 4px solid #1259c3;
+      padding: 10px 15px;
+      border-radius: 5px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      color: #2b2b2b;
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
+
+    @keyframes slideUp {
+      from {transform: translateY(20px); opacity: 0;}
+      to {transform: translateY(0); opacity: 1;}
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Minha Equipe</h2>
+
+  <div id="info">
+    <div>Link de convite:</div>
+    <div class="convite-box">
+      <span id="linkConvite" class="link-texto">Carregando...</span>
+      <button class="copy-btn" onclick="copiarLink()">Copiar link</button>
+    </div>
+  </div>
+
+  <!-- Níveis -->
+  <div class="nivel-card">
+    <h3>Nível 1 (30%)</h3>
+    <div class="nivel-info">
+      <span>Total convidados:</span>
+      <span id="totalN1">0</span>
+    </div>
+    <div class="nivel-info">
+      <span>Comissão:</span>
+      <span id="comissaoN1">0 Kz</span>
+    </div>
+  </div>
+
+  <div class="nivel-card">
+    <h3>Nível 2 (5%)</h3>
+    <div class="nivel-info">
+      <span>Total convidados:</span>
+      <span id="totalN2">0</span>
+    </div>
+    <div class="nivel-info">
+      <span>Comissão:</span>
+      <span id="comissaoN2">0 Kz</span>
+    </div>
+  </div>
+
+  <div class="nivel-card">
+    <h3>Nível 3 (1%)</h3>
+    <div class="nivel-info">
+      <span>Total convidados:</span>
+      <span id="totalN3">0</span>
+    </div>
+    <div class="nivel-info">
+      <span>Comissão:</span>
+      <span id="comissaoN3">0 Kz</span>
+    </div>
+  </div>
+
+  <div class="info-comissao">
+    Você ganha automaticamente comissões quando seus convidados e os convidados deles investem.<br/>
+    <strong>Nível 1:</strong> 30% &nbsp;&nbsp;|&nbsp;&nbsp;
+    <strong>Nível 2:</strong> 5% &nbsp;&nbsp;|&nbsp;&nbsp;
+    <strong>Nível 3:</strong> 1%
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyChrog4zZNoK8HTMl1MTMD43U7HHxBMtVw",
+      authDomain: "palpite3ad.firebaseapp.com",
+      databaseURL: "https://palpite3ad-default-rtdb.firebaseio.com",
+      projectId: "palpite3ad",
+      storageBucket: "palpite3ad.appspot.com",
+      messagingSenderId: "435372004187",
+      appId: "1:435372004187:android:3b7ee8b621fba094b2407e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, user => {
+      if (!user) {
+        alert("Sessão expirada. Faça login novamente.");
+        window.location.href = "index.html";
+        return;
+      }
+
+      const uid = user.uid;
+      const conviteCurto = uid.slice(-6);
+      const link = `${window.location.origin}/login.index.html?ref=${conviteCurto}`;
+      document.getElementById("linkConvite").textContent = link;
+
+      const usuariosRef = ref(db, "usuarios");
+
+      onValue(usuariosRef, snapshot => {
+        const dados = snapshot.val();
+        if (!dados) return;
+
+        let totalN1 = 0, totalN2 = 0, totalN3 = 0;
+        let comissaoN1 = 0, comissaoN2 = 0, comissaoN3 = 0;
+
+        Object.entries(dados).forEach(([uidConvidado, info]) => {
+          if (info.convidadoPor && info.convidadoPor.endsWith(conviteCurto)) {
+            totalN1++;
+            if (info.investimentos) {
+              Object.values(info.investimentos).forEach(invest => {
+                if (invest.status === "ativo") {
+                  const preco = parseInt(invest.preco || 0);
+                  comissaoN1 += Math.floor(preco * 0.30);
+                }
+              });
+            }
+
+            Object.entries(dados).forEach(([uidN2, infoN2]) => {
+              if (infoN2.convidadoPor && infoN2.convidadoPor.endsWith(uidConvidado.slice(-6))) {
+                totalN2++;
+                if (infoN2.investimentos) {
+                  Object.values(infoN2.investimentos).forEach(invest => {
+                    if (invest.status === "ativo") {
+                      const preco = parseInt(invest.preco || 0);
+                      comissaoN2 += Math.floor(preco * 0.05);
+                    }
+                  });
+                }
+
+                Object.entries(dados).forEach(([uidN3, infoN3]) => {
+                  if (infoN3.convidadoPor && infoN3.convidadoPor.endsWith(uidN2.slice(-6))) {
+                    totalN3++;
+                    if (infoN3.investimentos) {
+                      Object.values(infoN3.investimentos).forEach(invest => {
+                        if (invest.status === "ativo") {
+                          const preco = parseInt(invest.preco || 0);
+                          comissaoN3 += Math.floor(preco * 0.01);
+                        }
+                      });
+                    }
+                  }
+                });
+              }
+            });
+          }
+        });
+
+        document.getElementById("totalN1").textContent = totalN1;
+        document.getElementById("totalN2").textContent = totalN2;
+        document.getElementById("totalN3").textContent = totalN3;
+        document.getElementById("comissaoN1").textContent = comissaoN1 + " Kz";
+        document.getElementById("comissaoN2").textContent = comissaoN2 + " Kz";
+        document.getElementById("comissaoN3").textContent = comissaoN3 + " Kz";
+      });
+    });
+
+    window.copiarLink = function () {
+      const texto = document.getElementById("linkConvite").textContent;
+      navigator.clipboard.writeText(texto).then(() => {
+        alert("Link copiado com sucesso!");
+      });
+    };
+  </script>
+</body>
+</html>

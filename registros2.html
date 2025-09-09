@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vite App</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(180deg, #e0f2ff, #ffffff);
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      text-align: center;
+      color: #1e40af;
+      margin: 30px 0;
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    #retiradasPendentes {
+      max-width: 750px;
+      margin: 0 auto 50px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 0 15px;
+    }
+
+    .item {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 20px 25px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(37, 99, 235, 0.2);
+    }
+
+    .valor {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1e3a8a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 15px;
+      font-weight: bold;
+      font-size: 16px;
+      justify-content: center;
+      text-align: center;
+      margin: 10px auto 0;
+      box-sizing: border-box;
+    }
+
+    @media (max-width: 768px) {
+      .status { width: 100%; }
+    }
+
+    @media (min-width: 769px) {
+      .status {
+        min-width: 200px;
+        max-width: 300px;
+      }
+    }
+
+    .pago { background-color: #d1fae5; color: #065f46; }
+    .pago i { color: #065f46; }
+
+    .nao-pago { background-color: #bfdbfe; color: #1e40af; }
+    .nao-pago i { color: #1e40af; }
+
+    .rejeitado { background-color: #fecaca; color: #b91c1c; }
+    .rejeitado i { color: #b91c1c; }
+
+    .item-body {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: #374151;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .item-body div {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .item-body i {
+      color: #2563eb;
+      min-width: 16px;
+      text-align: center;
+    }
+
+    p.sem-resultados {
+      text-align: center;
+      color: #1e40af;
+      font-weight: bold;
+      margin-top: 80px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Histórico de Retiradas</h1>
+  <div id="retiradasPendentes"></div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyChrog4zZNoK8HTMl1MTMD43U7HHxBMtVw",
+      authDomain: "palpite3ad.firebaseapp.com",
+      databaseURL: "https://palpite3ad-default-rtdb.firebaseio.com",
+      projectId: "palpite3ad",
+      storageBucket: "palpite3ad.appspot.com",
+      messagingSenderId: "435372004187",
+      appId: "1:435372004187:android:3b7ee8b621fba094b2407e"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    // Normaliza status do banco para "Pago", "Não pago" ou "Rejeitado"
+    function normalizarStatus(status) {
+      const s = (status || '').toLowerCase();
+      if (s.includes('aprovado') || s.includes('pago')) return 'Pago';
+      if (s.includes('rejeitado')) return 'Rejeitado';
+      return 'Não pago'; // padrão
+    }
+
+    function getStatusClass(status) {
+      if (status === 'Pago') return 'pago';
+      if (status === 'Rejeitado') return 'rejeitado';
+      return 'nao-pago';
+    }
+
+    function getStatusIcon(status) {
+      if (status === 'Pago') return '<i class="fas fa-check-circle"></i>';
+      if (status === 'Rejeitado') return '<i class="fas fa-times-circle"></i>';
+      return '<i class="fas fa-clock"></i>'; // Não pago
+    }
+
+    function formatarData(timestamp) {
+      const d = new Date(timestamp);
+      if (isNaN(d)) return "";
+      const dia = String(d.getDate()).padStart(2, '0');
+      const mes = String(d.getMonth() + 1).padStart(2, '0');
+      const ano = d.getFullYear();
+      const hora = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      return `${dia}/${mes}/${ano} ${hora}:${min}`;
+    }
+
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        alert("Faça login primeiro.");
+        window.location.href = "index.html";
+        return;
+      }
+
+      const uid = user.uid;
+      const uidCurto = uid.slice(-6);
+      const container = document.getElementById("retiradasPendentes");
+
+      db.ref("retiradas").once("value").then(snapshot => {
+        const retiradasArray = [];
+        if (snapshot.exists()) {
+          snapshot.forEach(child => {
+            const val = child.val();
+            if (val.userId === uid) retiradasArray.push(val);
+          });
+        }
+
+        if (retiradasArray.length === 0) {
+          container.innerHTML = '<p class="sem-resultados">Nenhuma retirada encontrada.</p>';
+          return;
+        }
+
+        container.innerHTML = '';
+        retiradasArray.forEach(data => {
+          const statusNormalizado = normalizarStatus(data.status);
+          const icon = getStatusIcon(statusNormalizado);
+          const dataHora = formatarData(data.data || data.timestamp || Date.now());
+          const valor = data.valorRetirada || data.valor || 0;
+
+          const html = `
+            <div class="item">
+              <div class="valor"><i class="fas fa-money-bill-wave"></i> 
+                Kz ${parseFloat(valor).toLocaleString('pt-AO', {minimumFractionDigits: 2})}
+              </div>
+              <div class="item-body">
+                <div><i class="fas fa-calendar-alt"></i> ${dataHora}</div>
+                <div><i class="fas fa-id-badge"></i> ID: ${uidCurto}</div>
+              </div>
+              <div class="status ${getStatusClass(statusNormalizado)}">${icon} ${statusNormalizado}</div>
+            </div>
+          `;
+          container.innerHTML += html;
+        });
+      });
+    });
+  </script>
+</body>
+</html>

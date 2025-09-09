@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vite App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f8fd;
+      margin: 0;
+      padding: 20px;
+      position: relative;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 40px auto 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #1d4ed8;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 500;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: 1px solid #bbb;
+      border-radius: 6px;
+    }
+
+    button {
+      width: 100%;
+      background-color: #1d4ed8;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    button:hover {
+      background-color: #1649aa;
+    }
+
+    .registros-link {
+      display: block;
+      text-align: center;
+      background-color: #2563eb;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .registros-link:hover {
+      background-color: #1e40af;
+    }
+
+    .msg {
+      text-align: center;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Saque</h2>
+
+    <label for="valor">Montante (mínimo 3000 Kz)</label>
+    <input type="number" id="valor" placeholder="Informe o montante a levantar" />
+
+    <label for="banco">Selecione o banco</label>
+    <select id="banco">
+      <option value="">-- Escolha o banco --</option>
+      <option value="BFA">BFA</option>
+      <option value="ATL">ATL</option>
+      <option value="BIC">BIC</option>
+      <option value="BAI">BAI</option>
+    </select>
+
+    <label for="nib">NIB / IBAN</label>
+    <input type="text" id="nib" placeholder="Digite o NIB / IBAN" />
+
+    <label for="titular">Nome do beneficiário</label>
+    <input type="text" id="titular" placeholder="Digite o nome do beneficiário da conta" />
+
+    <button id="botaoRetirar" onclick="fazerRetirada()">Levantar</button>
+
+    <!-- Botão de Registros abaixo -->
+    <a href="registros2.html" class="registros-link">Histórico</a>
+
+    <div class="msg" id="mensagem"></div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyChrog4zZNoK8HTMl1MTMD43U7HHxBMtVw",
+      authDomain: "palpite3ad.firebaseapp.com",
+      databaseURL: "https://palpite3ad-default-rtdb.firebaseio.com",
+      projectId: "palpite3ad",
+      storageBucket: "palpite3ad.appspot.com",
+      messagingSenderId: "435372004187",
+      appId: "1:435372004187:android:3b7ee8b621fba094b2407e"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    let userId = null;
+    let saldoAtual = 0;
+    let podeRetirar = false;
+
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        userId = user.uid;
+        const userRef = firebase.database().ref("usuarios/" + userId);
+
+        // Busca saldo mas não mostra
+        userRef.child("saldo").on("value", snapshot => {
+          saldoAtual = snapshot.val() || 0;
+        });
+
+        userRef.child("dadosBancarios").once("value").then(snapshot => {
+          if (snapshot.exists()) {
+            const dados = snapshot.val();
+            document.getElementById("banco").value = dados.banco || "";
+            document.getElementById("nib").value = dados.nib || "";
+            document.getElementById("titular").value = dados.titular || "";
+          }
+        });
+
+        userRef.child("investimentos").once("value").then(snapshot => {
+          const investimentos = snapshot.val();
+          if (investimentos && Object.keys(investimentos).length > 0) {
+            podeRetirar = true;
+          } else {
+            podeRetirar = false;
+            document.getElementById("mensagem").innerText = "❌ É necessário possuir um investimento ativo para realizar saques.";
+            document.getElementById("mensagem").style.color = "red";
+            document.getElementById("botaoRetirar").disabled = true;
+          }
+        });
+
+      } else {
+        window.location.href = "index.html";
+      }
+    });
+
+    function fazerRetirada() {
+      const valor = parseFloat(document.getElementById("valor").value);
+      const banco = document.getElementById("banco").value;
+      const nib = document.getElementById("nib").value.trim();
+      const titular = document.getElementById("titular").value.trim();
+      const mensagem = document.getElementById("mensagem");
+
+      if (!podeRetirar) {
+        mensagem.innerText = "É necessário possuir um investimento ativo para realizar saques.";
+        mensagem.style.color = "red";
+        return;
+      }
+
+      if (isNaN(valor) || valor < 3000) {
+        mensagem.innerText = "O montante mínimo para levantamento é 3000 Kz.";
+        mensagem.style.color = "red";
+        return;
+      }
+
+      if (valor > saldoAtual) {
+        mensagem.innerText = "O montante excede o saldo existente.";
+        mensagem.style.color = "red";
+        return;
+      }
+
+      if (!banco || !nib || !titular) {
+        mensagem.innerText = "Preencha todas as informações bancárias.";
+        mensagem.style.color = "red";
+        return;
+      }
+
+      const userRef = firebase.database().ref("usuarios/" + userId);
+
+      const novoSaldo = saldoAtual - valor;
+      userRef.child("saldo").set(novoSaldo);
+
+      userRef.child("dadosBancarios").set({
+        banco,
+        nib,
+        titular
+      });
+
+      userRef.child("nome").once("value").then(nomeSnap => {
+        const nome = nomeSnap.val() || "Sem Nome";
+
+        firebase.database().ref("retiradas").push().set({
+          userId,
+          nome,
+          saldoAtual,
+          valorRetirada: valor,
+          banco,
+          nib,
+          titular,
+          status: "em análise",
+          timestamp: new Date().toISOString()
+        });
+
+        mensagem.innerText = "✅ SOLICITAÇÃO REALIZADA COM ÊXITO";
+        mensagem.style.color = "green";
+        document.getElementById("valor").value = "";
+      });
+    }
+  </script>
+</body>
+</html>

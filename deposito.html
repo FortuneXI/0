@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vite App</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f0f4ff;
+  color: #1b4332;
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+header {
+  background-color: #1d4ed8;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+main {
+  padding: 20px;
+  max-width: 500px;
+  margin: 20px auto;
+}
+
+.card {
+  background-color: #dbeafe;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.card h3 {
+  margin-top: 0;
+  color: #1e40af;
+  margin-bottom: 10px;
+}
+
+/* Caixa de informações com logotipo à direita */
+.info-pagamento {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+.info-dados {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.info-dados p {
+  margin: 0;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.info-pagamento img {
+  height: 60px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+label {
+  display: block;
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+input[type="number"],
+input[type="file"] {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+button.enviar,
+button.historico {
+  margin-top: 15px;
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+button.enviar {
+  background-color: #1d4ed8;
+}
+
+button.enviar:hover {
+  background-color: #2563eb;
+}
+
+button.historico {
+  background-color: #10b981; /* verde */
+}
+
+button.historico:hover {
+  background-color: #059669;
+}
+
+.mensagem {
+  margin-top: 20px;
+  font-size: 15px;
+  color: #1e3a8a;
+  text-align: center;
+}
+
+/* Instruções estilo passo a passo */
+.instrucoes {
+  counter-reset: step-counter;
+  padding-left: 0;
+  margin: 0;
+}
+
+.instrucoes li {
+  list-style: none;
+  position: relative;
+  padding-left: 40px;
+  margin-bottom: 20px;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.instrucoes li::before {
+  counter-increment: step-counter;
+  content: counter(step-counter);
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-color: #1d4ed8;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 28px;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.instrucoes li::after {
+  content: '';
+  position: absolute;
+  left: 13px;
+  top: 28px;
+  width: 2px;
+  height: calc(100% - 28px);
+  background-color: #1d4ed8;
+}
+
+.instrucoes li:last-child::after {
+  display: none;
+}
+
+footer {
+  text-align: center;
+  padding: 15px;
+  color: #999;
+  font-size: 13px;
+}
+</style>
+</head>
+<body>
+
+<header>
+Depósito
+</header>
+
+<main>
+  <!-- Informações de Pagamento com logotipo local à direita -->
+  <div class="card info-pagamento">
+    <div class="info-dados">
+      <h3>Informações de Pagamento</h3>
+      <p>Entidade: 10116</p>
+      <p>Referência: 957329934</p>
+    </div>
+    <img src="multicaixa.png" alt="Multicaixa Express">
+  </div>
+
+  <!-- Instruções -->
+  <div class="card">
+    <h3>Instruções</h3>
+    <ul class="instrucoes">
+      <li>Abra o aplicativo Multicaixa Express.</li>
+      <li>Vá em "Pagamento por referência".</li>
+      <li>Entidade: <strong>10116</strong></li>
+      <li>Referência: <strong>957329934</strong></li>
+      <li>Valor mínimo: 5000 KZ</li>
+      <li>Confirme o pagamento.</li>
+      <li>Faça captura de tela do comprovativo.</li>
+      <li>Envie abaixo.</li>
+    </ul>
+  </div>
+
+  <!-- Formulário de Depósito -->
+  <div class="card">
+    <label for="valor">Valor depositado (KZ):</label>
+    <input type="number" id="valor" min="5000" placeholder="Ex: 5000" />
+
+    <label for="comprovativo">Enviar comprovativo (screenshot):</label>
+    <input type="file" id="comprovativo" accept="image/*" />
+
+    <button class="enviar" id="btnEnviar" onclick="enviarComprovativo()">Enviar Comprovativo</button>
+    <button class="historico" onclick="window.location.href='registros.html'">Histórico</button>
+
+    <div class="mensagem" id="mensagem"></div>
+  </div>
+</main>
+
+<footer>FortuneX © 2025</footer>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyChrog4zZNoK8HTMl1MTMD43U7HHxBMtVw",
+  authDomain: "palpite3ad.firebaseapp.com",
+  databaseURL: "https://palpite3ad-default-rtdb.firebaseio.com",
+  projectId: "palpite3ad",
+  storageBucket: "palpite3ad.appspot.com",
+  messagingSenderId: "435372004187",
+  appId: "1:435372004187:android:3b7ee8b621fba094b2407e"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+firebase.auth().onAuthStateChanged(user => {
+  if (!user) return location.href = "index.html";
+});
+
+async function enviarComprovativo() {
+  const user = firebase.auth().currentUser;
+  const valor = parseFloat(document.getElementById("valor").value);
+  const comprovativo = document.getElementById("comprovativo").files[0];
+  const mensagemEl = document.getElementById("mensagem");
+
+  if (!valor || valor < 5000) {
+    mensagemEl.innerText = "Digite um valor válido (mínimo KZ 5000).";
+    return;
+  }
+
+  if (!comprovativo) {
+    mensagemEl.innerText = "Por favor, selecione o comprovativo (imagem).";
+    return;
+  }
+
+  try {
+    const snapshot = await firebase.storage().ref(`comprovativos/${user.uid}/${Date.now()}-${comprovativo.name}`).put(comprovativo);
+    const url = await snapshot.ref.getDownloadURL();
+
+    const userRef = firebase.database().ref("usuarios/" + user.uid);
+    const userSnapshot = await userRef.once("value");
+    const userData = userSnapshot.val() || {};
+
+    const nome = userData.nome || "Usuário";
+    const saldo = userData.saldo || 0;
+
+    await firebase.database().ref("depositosPendentes/" + user.uid).push({
+      nome: nome,
+      saldoAtual: saldo,
+      valor: valor,
+      status: "pendente",
+      comprovativoUrl: url,
+      data: new Date().toISOString()
+    });
+
+    mensagemEl.innerText = "✅ Comprovativo enviado com sucesso. Aguarde aprovação.";
+    document.getElementById("valor").value = "";
+    document.getElementById("comprovativo").value = "";
+
+  } catch (err) {
+    console.error(err);
+    mensagemEl.innerText = "Erro ao enviar comprovativo. Tente novamente.";
+  }
+}
+</script>
+
+</body>
+</html>

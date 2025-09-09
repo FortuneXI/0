@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Vite App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #f0f2f5;
+      --primary: #2563eb;
+      --secondary: #475569;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --card-bg: #fff;
+      --shadow: rgba(0,0,0,0.1);
+    }
+
+    body {
+      font-family: "Poppins", sans-serif;
+      background: var(--bg);
+      margin: 0;
+      padding: 20px;
+      color: var(--secondary);
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--primary);
+      font-size: 2rem;
+      margin-bottom: 30px;
+    }
+
+    #listaAtivos {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .ativo {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 6px 16px var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .ativo:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+    .ativo h2 {
+      font-size: 1.2rem;
+      margin: 0;
+      color: var(--primary);
+    }
+
+    .info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+    }
+
+    .info span {
+      font-weight: 500;
+    }
+
+    .contador {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      background: var(--success);
+      color: #fff;
+      margin-top: 5px;
+      align-self: flex-start;
+    }
+
+    .ativo.concluido .contador {
+      background: var(--danger);
+    }
+
+    .icon { font-size: 1.2rem; }
+  </style>
+</head>
+<body>
+
+  <h1>📊 Investimentos Ativos</h1>
+  <div id="listaAtivos"></div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyChrog4zZNoK8HTMl1MTMD43U7HHxBMtVw",
+      authDomain: "palpite3ad.firebaseapp.com",
+      databaseURL: "https://palpite3ad-default-rtdb.firebaseio.com",
+      projectId: "palpite3ad",
+      storageBucket: "palpite3ad.appspot.com",
+      messagingSenderId: "435372004187",
+      appId: "1:435372004187:android:3b7ee8b621fba094b2407e"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    const listaEl = document.getElementById('listaAtivos');
+    let userId = null;
+
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        userId = user.uid;
+        carregarInvestimentos();
+      } else {
+        window.location.href = "index.html";
+      }
+    });
+
+    function carregarInvestimentos() {
+      firebase.database().ref('usuarios/' + userId + '/investimentos').on('value', snapshot => {
+        listaEl.innerHTML = '';
+        const agora = Date.now();
+        let contadorPacote = 1;
+
+        snapshot.forEach(child => {
+          const inv = child.val();
+          const key = child.key;
+
+          if (inv.status !== "ativo") return;
+
+          const tempoTotal = inv.dias * 24 * 60 * 60 * 1000;
+          const tempoRestante = (inv.inicio + tempoTotal) - agora;
+
+          if (tempoRestante <= 0) {
+            firebase.database().ref('usuarios/' + userId + '/saldo').once('value').then(snap => {
+              const saldoAtual = snap.val() || 0;
+              const novoSaldo = saldoAtual + inv.rendimento;
+
+              firebase.database().ref('usuarios/' + userId + '/saldo').set(novoSaldo);
+              firebase.database().ref('usuarios/' + userId + '/investimentos/' + key + '/status').set("concluído");
+            });
+            return;
+          }
+
+          const div = document.createElement("div");
+          div.className = "ativo";
+
+          const rendimentoDiario = Math.floor(inv.rendimento / inv.dias);
+
+          div.innerHTML = `
+            <h2>📦 PACOTE ${contadorPacote}</h2>
+            <div class="info"><span class="icon">💰</span> Investido: <span>${inv.preco.toLocaleString()} KZ</span></div>
+            <div class="info"><span class="icon">📈</span> Rendimento Total: <span>${inv.rendimento.toLocaleString()} KZ</span></div>
+            <div class="info"><span class="icon">🔄</span> Rendimento Diário: <span>${rendimentoDiario.toLocaleString()} KZ</span></div>
+            <div class="info"><span class="icon">⏳</span> <span class="contador">...</span></div>
+          `;
+
+          listaEl.appendChild(div);
+
+          const contador = div.querySelector(".contador");
+
+          atualizarContador(contador, inv.inicio, tempoTotal, () => {
+            div.classList.add("concluido");
+            contador.textContent = "Concluído";
+            firebase.database().ref('usuarios/' + userId + '/saldo').once('value').then(snap => {
+              const saldoAtual = snap.val() || 0;
+              const novoSaldo = saldoAtual + inv.rendimento;
+
+              firebase.database().ref('usuarios/' + userId + '/saldo').set(novoSaldo);
+              firebase.database().ref('usuarios/' + userId + '/investimentos/' + key + '/status').set("concluído");
+            });
+          });
+
+          contadorPacote++;
+        });
+      });
+    }
+
+    function atualizarContador(el, inicio, duracao, aoTerminar) {
+      function atualizar() {
+        const agora = Date.now();
+        const restante = (inicio + duracao) - agora;
+
+        if (restante <= 0) {
+          el.textContent = "Concluído";
+          if (aoTerminar) aoTerminar();
+          return;
+        }
+
+        const segundos = Math.floor(restante / 1000);
+        const dias = Math.floor(segundos / (24 * 3600));
+        const horas = Math.floor((segundos % (24 * 3600)) / 3600);
+        const minutos = Math.floor((segundos % 3600) / 60);
+        const s = segundos % 60;
+
+        if (dias > 1) {
+          el.textContent = `${dias} dias restantes`;
+        } else if (dias === 1) {
+          el.textContent = `1 dia restante`;
+        } else {
+          el.textContent = `${horas}h ${minutos}m ${s}s restantes`;
+        }
+
+        requestAnimationFrame(atualizar);
+      }
+      atualizar();
+    }
+  </script>
+</body>
+</html>

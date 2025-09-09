@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vite App</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(180deg, #e0f2ff, #ffffff);
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      text-align: center;
+      color: #1e40af;
+      margin: 30px 0;
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    #depositosPendentes {
+      max-width: 750px;
+      margin: 0 auto 50px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 0 15px;
+    }
+
+    .item {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 20px 25px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(37, 99, 235, 0.2);
+    }
+
+    .item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .valor {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1e3a8a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 14px;
+      justify-content: center;
+      text-align: center;
+      margin-left: auto;
+    }
+
+    @media (max-width: 768px) {
+      .status {
+        width: 100%;
+        margin-left: 0;
+      }
+    }
+
+    .aprovado { background-color: #d1fae5; color: #065f46; }
+    .aprovado i { color: #065f46; }
+
+    .pendente { background-color: #bfdbfe; color: #1e40af; }
+    .pendente i { color: #1e40af; }
+
+    .rejeitado { background-color: #fecaca; color: #b91c1c; }
+    .rejeitado i { color: #b91c1c; }
+
+    .item-body {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 14px;
+      color: #374151;
+    }
+
+    .item-body div {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .item-body i {
+      color: #2563eb;
+      min-width: 16px;
+      text-align: center;
+    }
+
+    .link-comprovativo {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      font-size: 14px;
+      color: #1d4ed8;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .link-comprovativo:hover {
+      text-decoration: underline;
+    }
+
+    p.sem-resultados {
+      text-align: center;
+      color: #1e40af;
+      font-weight: bold;
+      margin-top: 80px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Histórico de Depósitos</h1>
+  <div id="depositosPendentes"></div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyChrog4zZNoK8HTMl1MTMD43U7HHxBMtVw",
+      authDomain: "palpite3ad.firebaseapp.com",
+      databaseURL: "https://palpite3ad-default-rtdb.firebaseio.com",
+      projectId: "palpite3ad",
+      storageBucket: "palpite3ad.appspot.com",
+      messagingSenderId: "435372004187",
+      appId: "1:435372004187:android:3b7ee8b621fba094b2407e"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    function getStatusClass(status) {
+      const s = (status || '').toLowerCase();
+      if (s === 'aprovado') return 'aprovado';
+      if (s === 'pendente') return 'pendente';
+      if (s === 'rejeitado') return 'rejeitado';
+      return 'pendente';
+    }
+
+    function getStatusIcon(status) {
+      const s = (status || '').toLowerCase();
+      if (s === 'aprovado') return '<i class="fas fa-check-circle"></i>';
+      if (s === 'pendente') return '<i class="fas fa-clock"></i>';
+      if (s === 'rejeitado') return '<i class="fas fa-times-circle"></i>';
+      return '<i class="fas fa-clock"></i>';
+    }
+
+    function formatarData(dataStr) {
+      if (!dataStr) return '';
+      const d = new Date(dataStr);
+      if (isNaN(d)) return '';
+      const dia = String(d.getDate()).padStart(2, '0');
+      const mes = String(d.getMonth() + 1).padStart(2, '0');
+      const ano = d.getFullYear();
+      const hora = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      return `${dia}/${mes}/${ano} ${hora}:${min}`;
+    }
+
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        alert("Faça login primeiro.");
+        window.location.href = "index.html";
+        return;
+      }
+
+      const uid = user.uid;
+      const container = document.getElementById("depositosPendentes");
+
+      // buscar somente os depósitos do usuário logado
+      db.ref("depositosPendentes/" + uid).once("value").then(snapshot => {
+        const depositosArray = [];
+        if (snapshot.exists()) {
+          snapshot.forEach(child => {
+            depositosArray.push(child.val());
+          });
+        }
+
+        if (depositosArray.length === 0) {
+          container.innerHTML = '<p class="sem-resultados">Nenhum depósito encontrado.</p>';
+          return;
+        }
+
+        // ordenar do mais recente
+        depositosArray.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+        container.innerHTML = '';
+        depositosArray.forEach(data => {
+          const status = data.status || 'pendente';
+          const icon = getStatusIcon(status);
+          const dataHora = formatarData(data.data);
+
+          const comprovativo = data.comprovativoUrl 
+            ? `<a class="link-comprovativo" href="${data.comprovativoUrl}" target="_blank">
+                 <i class="fas fa-receipt"></i> Ver comprovativo
+               </a>` 
+            : '';
+
+          const html = `
+            <div class="item">
+              <div class="item-top">
+                <div class="valor"><i class="fas fa-money-bill-wave"></i> 
+                  Kz ${parseFloat(data.valor || 0).toLocaleString('pt-AO', {minimumFractionDigits: 2})}
+                </div>
+                <div class="status ${getStatusClass(status)}">${icon} ${status}</div>
+              </div>
+              <div class="item-body">
+                <div><i class="fas fa-calendar-alt"></i> ${dataHora}</div>
+                <div><i class="fas fa-user"></i> ${data.nome || 'Sem nome'}</div>
+              </div>
+              ${comprovativo}
+            </div>
+          `;
+          container.innerHTML += html;
+        });
+      });
+    });
+  </script>
+
+</body>
+</html>

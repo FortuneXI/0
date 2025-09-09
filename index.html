@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vite App</title>
+<link href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #e6f0ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 380px;
+    background: #ffffff;
+    border-radius: 25px;
+    padding: 30px 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+
+  .top-banner {
+    background: url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=800&q=80') no-repeat center/cover;
+    border-radius: 20px 20px 0 0;
+    padding: 40px 0;
+    color: white;
+    margin: -30px -20px 20px;
+  }
+  .top-banner h1 {
+    font-size: 22px;
+    margin-bottom: 5px;
+  }
+  .top-banner p {
+    font-size: 14px;
+  }
+
+  .input-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    background: #f0f4ff;
+    border-radius: 12px;
+    padding: 12px 15px;
+    border: 1px solid #c3d5ff;
+  }
+  .input-group i {
+    margin-right: 10px;
+    color: #2563eb;
+    font-size: 18px;
+  }
+  .input-group input {
+    border: none;
+    outline: none;
+    flex: 1;
+    font-size: 15px;
+    background: transparent;
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 14px;
+    background: #2563eb;
+    border: none;
+    border-radius: 25px;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: transform 0.2s, background 0.3s;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    background: #1e40af;
+  }
+
+  .btn-secondary {
+    width: 48%;
+    padding: 12px;
+    background: #ffffff;
+    border: 2px solid #2563eb;
+    color: #2563eb;
+    border-radius: 25px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+    transition: transform 0.2s, background 0.3s;
+  }
+  .btn-secondary:hover {
+    transform: translateY(-2px);
+    background: #e0f0ff;
+  }
+
+  .actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+  }
+
+  .bottom-text {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #2563eb;
+    text-align: center;
+  }
+</style>
+
+<!-- Ícones -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+</head>
+<body>
+
+<div class="container">
+  <div class="top-banner">
+    <h1>Olá, Seja Bem Vindo!</h1>
+    <h1>FortuneX</h1>
+    <p>Não tem uma conta?</p>
+  </div>
+
+  <div class="input-group">
+    <i class="fas fa-phone"></i>
+    <input type="text" placeholder="+244 Número de telefone" id="telefone">
+  </div>
+
+  <div class="input-group">
+    <i class="fas fa-lock"></i>
+    <input type="text" placeholder="Senha de Entrada" id="senha">
+  </div>
+
+  <div class="bottom-text">
+    Contatar o serviço ao cliente
+  </div>
+
+  <div class="actions">
+    <button class="btn-secondary" onclick="location.href='login.index.html'">Registrar</button>
+    <button class="btn-primary" onclick="entrar()">Entrar</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyChrog4zZNoK8HTMl1MTMD43U7HHxBMtVw",
+    authDomain: "palpite3ad.firebaseapp.com",
+    projectId: "palpite3ad",
+    storageBucket: "palpite3ad.appspot.com",
+    messagingSenderId: "435372004187",
+    appId: "1:435372004187:android:3b7ee8b621fba094b2407e",
+    databaseURL: "https://palpite3ad-default-rtdb.firebaseio.com"
+  };
+  firebase.initializeApp(firebaseConfig);
+
+  function entrar() {
+    const telefone = document.getElementById("telefone").value.trim();
+    const senha = document.getElementById("senha").value;
+    if (!telefone || !senha) { alert("Preencha todos os campos."); return; }
+    const emailFake = telefone + "@kerocapital.com";
+    firebase.auth().signInWithEmailAndPassword(emailFake, senha)
+      .then(() => window.location.href = "tela.html")
+      .catch(err => alert("Erro ao entrar: " + err.message));
+  }
+</script>
+
+</body>
+</html>
